@@ -9,7 +9,7 @@
 - **`.github/workflows/lint.yml` / `release.yml`** — reusable (`workflow_call`) workflows.
   Consuming repos keep a thin caller workflow; no submodule needed, and pinning the caller's
   `uses:` ref to a tag (instead of `@main`) gives the same freeze option as the submodule has.
-- **`templates/`** — copied into a new mod repo exactly once, by `scripts/new-mod.ps1`, then
+- **`templates/`** — copied into a new mod repo exactly once, by `bootstrap.ps1`, then
   owned by that repo forever. This is everything that's either **position-sensitive**
   (`.emmyrc.json`'s workspace `library` path embeds the mod name/path) or **inherently
   mod-specific** (mod.info, workshop listing, lore docs, CLAUDE.md). Never expect these to
