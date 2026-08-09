@@ -1,0 +1,55 @@
+name: Release Mod
+
+# Reusable workflow: consuming mod repos call this with `secrets: inherit` so
+# GITHUB_TOKEN reaches the release step. See docs/USING-THIS-TEMPLATE.md.
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        description: 'Version Tag (e.g., v1.0.1)'
+        required: true
+        type: string
+      mod_name:
+        description: 'Mod folder/zip name (matches Contents/mods/<name>)'
+        required: true
+        type: string
+
+permissions:
+  contents: write # Required to push tags and create releases
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Package Mod
+        run: |
+          chmod +x tooling/scripts/package.sh
+          ./tooling/scripts/package.sh ${{ inputs.tag_name }}
+
+      - name: Zip Artifact
+        run: |
+          # Zip the folder staged by package.sh; the archive root stays the mod name
+          # (the name the mods folder needs), only the staging parent is dist/.
+          cd dist && zip -r ../${{ inputs.mod_name }}.zip ${{ inputs.mod_name }}
+
+      - name: Create and Push Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag ${{ inputs.tag_name }}
+          git push origin ${{ inputs.tag_name }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.tag_name }}
+          files: ${{ inputs.mod_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

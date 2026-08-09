@@ -1,0 +1,5 @@
+# This is the template repo's OWN .gitignore (for when it's used standalone / for dev on
+# the scripts themselves). templates/.gitignore is the separate file that gets scaffolded
+# into new mod repos — don't conflate the two.
+.DS_Store
+Thumbs.db

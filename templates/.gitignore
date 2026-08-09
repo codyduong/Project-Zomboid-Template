@@ -1,0 +1,16 @@
+# Packaging staging area (tooling/scripts/package.*)
+/dist/
+# Ephemeral dedicated-server world/state (tooling/scripts/testhost.ps1; seed configs in testhost/)
+/.testhost/
+
+# Decompiled game source + vanilla Lua snapshots (analysis only, produced by
+# tooling/scripts/decompile.ps1); one subfolder per PZ build (Major.Minor.Patch, since
+# patches can change Java behavior too), kept side by side during an update
+# (docs/UPDATING-PZ.md)
+/.decompiled*/
+# Downloaded dev tools (e.g. Zomboid Decompiler, PZ dedicated server)
+/.tools/
+# Steam Workshop publish scratch (generated VDF, steamcmd logs)
+/.publish/
+# mise local, machine-specific overrides (secrets)
+mise.local.toml

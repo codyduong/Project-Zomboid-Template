@@ -1,0 +1,8 @@
+modversion=0.1.0
+id=__MOD_NAME__
+name=__MOD_NAME__ [B42]
+author=DuongC
+description=
+poster=poster.png
+tags=Build 42
+versionMin=42.19

@@ -1,0 +1,57 @@
+# Testing
+
+Every change must be verified in **both single-player and a local multiplayer server** if
+the mod has any code path that can run on either side — a mod's timed actions/events can run
+server-side while the menu that created them ran client-side.
+
+## 1. Deploy your working copy
+
+```
+mise run check             # lint + types first
+mise run deploy client     # -> %USERPROFILE%\Zomboid\Workshop\__MOD_NAME__ (SP / client)
+mise run deploy server     # -> .testhost\mods\__MOD_NAME__ (the ephemeral dedicated server)
+mise run deploy all        # both
+```
+
+The target is **required** — a deploy never silently touches a location you didn't intend.
+`client` feeds the "workshop (dev)" dir the game client loads from (enable the mod in the
+in-game Mods list, Workshop tab). `server` feeds the ephemeral testhost (§2), *not* your real
+`~\Zomboid` — your own installation never becomes the test playground.
+
+TODO: describe your debug scenario / test rig here, mirroring PlumbingFixed's
+`DebugPlumbing.lua` pattern (a debug-mode scenario that builds a reproducible test setup, plus
+invariant checks — e.g. "the unaffected control case must never show a marker").
+
+## 2. Multiplayer (ephemeral dedicated server)
+
+The gotchas live here. The **testhost** runs a real dedicated server without touching your
+game install or `~\Zomboid`:
+
+```
+mise run deploy server     # sync the mod into the testhost
+mise run testhost          # first run: steamcmd downloads app 380870 (~4 GB, anonymous)
+mise run testhost --reset  # nuke .testhost\ and start a fresh world
+```
+
+- The server binary lives in `.tools\pzserver` (Steam app **380870**, branch `unstable` —
+  must match the installed game's build or the client is refused). All world/config/db state
+  lives in the git-ignored `.testhost\` via `-cachedir`; seed configs come from the
+  source-controlled `testhost/` dir on first boot.
+- Why not `~\Zomboid`: the dedicated server runs **non-Steam**, so it never scans
+  `Zomboid\Workshop` — pointing it at your real dir would make your own install the canary
+  playground.
+- Connect from a **normally-launched** client (mod enabled from §1): Join → `127.0.0.1`,
+  port `16261`, account **admin** / **pztest** (created on first boot).
+
+## 3. Logs
+
+- `DebugLog.log(DebugType.Mod, ...)` lines appear in the console window and in
+  `%USERPROFILE%\Zomboid\console.txt`.
+- Testhost server logs: `.testhost\server-console.txt`.
+- Lua errors surface in-game and in `console.txt`.
+
+## 4. Before you commit
+
+- `mise run check` is green.
+- SP **and** MP verified for any code path you touched.
+- No new `FluidContainer` (or other Java-managed resource) leaks.

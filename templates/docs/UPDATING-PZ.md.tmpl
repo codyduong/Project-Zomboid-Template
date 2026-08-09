@@ -1,0 +1,70 @@
+# Updating to a new Project Zomboid build
+
+Run this when PZ ships a new build and you want to target it.
+
+## 0. Confirm the installed build
+
+- Don't trust `%USERPROFILE%\Zomboid\version.txt` — it only rewrites when the game
+  **launches**. Check the real install: Steam → PZ → Properties → Betas (branch) and the
+  file dates of `...\ProjectZomboid\projectzomboid.jar`, or the Steam
+  `appmanifest_108600.acf` (`buildid`, `LastUpdated`, `BetaKey`).
+- This is also the `<version>` string you pass to `mise run decompile` below — use the full
+  `Major.Minor.Patch` (e.g. `42.20.2`, not `42.20`), since patches can change Java behavior
+  too.
+
+## 1. Snapshot the old build BEFORE Steam updates it
+
+Each build's decompile lives in its own `.decompiled/<version>/` folder (gitignored), so
+running `mise run decompile` for the new build never touches an older one — but you still
+need to have *run it* for the currently-installed build before Steam overwrites it:
+
+```
+mise run decompile 42.19.0      # or whatever §0 says is currently installed
+```
+
+## 2. Align the type stubs (Umbrella submodule, if used)
+
+```
+git -C Umbrella fetch --tags
+git -C Umbrella checkout <matching-tag>
+git add Umbrella
+```
+
+## 3. Re-decompile the new build
+
+```
+mise run decompile 42.20.2
+```
+This also snapshots the installed `media/lua` alongside the decompiled Java in the same
+step, so the Java and its Lua callers for this build sit together — this is the authoritative
+source for **behavior** (client vs server vs synced), not just signatures.
+
+## 4. Diff the override surface
+
+```
+git diff --no-index .decompiled/42.19.0/source .decompiled/42.20.2/source -- <file>
+git diff --no-index .decompiled/42.19.0/media/lua .decompiled/42.20.2/media/lua -- <file>
+```
+
+TODO: list the specific Java/Lua files this mod's override surface actually touches, mirroring
+PlumbingFixed's UPDATING-PZ.md §4 table, so a future update knows exactly what to diff.
+
+Three outcomes per spot:
+
+- **No diff** — nothing to do.
+- **Diff** — vanilla behavior changed; reconcile the affected guard/util. Verify authority
+  per side in the new `.decompiled/` (golden rule in [CLAUDE.md](../CLAUDE.md)) — never
+  adjust a predicate just until it goes green.
+- **Seam moved** — a caller left Lua for Java (or vice versa). That's a re-derivation: find
+  where the behavior went and what seam replaces it.
+
+## 5. Update the build markers (only if the minimum target changed)
+
+- `Contents/mods/__MOD_NAME__/42/mod.info` → `name=` and `versionMin=`/`versionMax=` if
+  applicable.
+- `workshop/workshop.vdf` → any `title=... [B42.<x>+]` line.
+
+## 6. Test, clean up, release
+
+- `mise run check`, then a full SP + MP pass per [TESTING.md](TESTING.md).
+- Then follow [RELEASING.md](RELEASING.md).

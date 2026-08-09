@@ -1,0 +1,9 @@
+modversion=0.1.0
+id=__MOD_NAME__
+name=__MOD_NAME__ (B41)
+author=DuongC
+description=
+poster=poster.png
+tags=Build 41
+versionMin=41.0
+versionMax=41.78.16

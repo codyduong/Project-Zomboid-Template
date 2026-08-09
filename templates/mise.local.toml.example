@@ -1,0 +1,9 @@
+# Copy to mise.local.toml (git-ignored, auto-loaded with higher precedence than mise.toml).
+# Never commit this file once filled in.
+
+[env]
+STEAM_USERNAME = "your-steam-username"
+STEAM_PASSWORD = "age-encrypt-this-dont-paste-plaintext"
+# Optional overrides:
+# PZ_HOME = "C:/Program Files (x86)/Steam/steamapps/common/ProjectZomboid"
+# ZOMBOID_DIR = "C:/Users/you/Zomboid"

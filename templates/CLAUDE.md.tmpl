@@ -1,0 +1,90 @@
+# CLAUDE.md — __MOD_NAME__
+
+Project Zomboid **Build 42** mod. TODO: one-paragraph description of what the mod does.
+
+This file is the always-read entry point. Deeper detail lives in [`docs/`](docs/):
+[TESTING](docs/TESTING.md) · [RELEASING](docs/RELEASING.md) ·
+[UPDATING-PZ](docs/UPDATING-PZ.md) · [LESSONS-LEARNED](docs/LESSONS-LEARNED.md).
+
+---
+
+## ⚠️ Golden rule: do not trust a Lua global by its name
+
+PZ exposes Java to Lua. **A method's name does not tell you where it is authoritative.**
+Some state is client-only, some server-only, some synced — and getters can silently return
+stale/false values on the "wrong" side. Verify any vanilla API you rely on three ways before
+overriding or trusting it:
+
+1. **Which vanilla dir defines the caller?** `client/` runs on the client, `server/` on the
+   server, `shared/` on both. Read the real source at the installed game's
+   `media/lua/{client,server,shared}`.
+2. **What does the Java actually do?** Decompile and read it: `mise run decompile <version>` →
+   `.decompiled/`.
+3. **Test both paths.** Reproduce in **single-player AND a local dedicated server** — a fix
+   that works in SP can be wrong in MP. See [docs/TESTING.md](docs/TESTING.md).
+
+TODO: as you hit real landmines (a getter that lied, a flag that meant something other than
+its name suggested), record them here so future-you doesn't rediscover them the hard way —
+see PlumbingFixed's CLAUDE.md for what this section looks like once it has real entries.
+
+---
+
+## Toolchain (mise)
+
+Tooling is pinned in [`mise.toml`](mise.toml). `tooling/` is a **git submodule** sourced from
+[Project-Zomboid-Template](https://github.com/codyduong/Project-Zomboid-Template) — it holds
+the actual scripts; `mise.toml` here is a thin per-repo shim over them. One-time: install
+[mise](https://mise.jdx.dev), then:
+
+```
+git submodule update --init
+mise install
+mise tasks
+```
+
+| Task | What it does |
+|------|--------------|
+| `mise run check` | luafmt + emmylua_check |
+| `mise run decompile <version>` | Decompile the installed game into `.decompiled/<version>/` |
+| `mise run bump <version>` | Set `modversion` in every `mod.info` |
+| `mise run package <tag>` | Validate versions + assemble `dist/__MOD_NAME__` |
+| `mise run deploy <client\|server\|all>` | Package + sync for in-game testing |
+| `mise run testhost [--reset]` | Ephemeral local dedicated server for MP testing |
+| `mise run publish <test\|prod> "note"` | Upload to Steam Workshop via steamcmd |
+| `mise run sync-template` | Pull the latest `tooling/` (Project-Zomboid-Template) commit |
+
+**Keeping in sync with the template**: `mise run sync-template` updates `tooling/` to the
+template's current tip and stages the submodule bump — review the diff, then commit. To pin
+and skip an update, just don't run it. To fully diverge (vendor `tooling/` permanently and
+drop the submodule link): `git submodule deinit tooling && git rm tooling`, then copy the
+scripts in directly and edit freely — see the template's
+[docs/USING-THIS-TEMPLATE.md](https://github.com/codyduong/Project-Zomboid-Template/blob/main/docs/USING-THIS-TEMPLATE.md).
+
+**Secrets / local overrides:** `cp mise.local.toml.example mise.local.toml` and set
+`STEAM_USERNAME` + `STEAM_PASSWORD`. `mise.local.toml` is git-ignored.
+
+---
+
+## Layout
+
+- `Contents/mods/__MOD_NAME__/42/media/lua/...` — the mod (Build 42).
+- `Contents/mods/__MOD_NAME__/41/` — B41 compatibility metadata stub.
+- `tooling/` — the shared scripts submodule (see above). Don't edit it in place; changes
+  belong in the template repo.
+- `workshop/workshop.vdf` + `workshop/item-ids.json` — Steam Workshop listing + item ids
+  (source-controlled; ids are public, not secret).
+
+## Conventions
+
+- **Formatting:** luafmt (`emmylua_formatter`), Lua 5.1, 2-space indent.
+- **Types:** EmmyLua annotations; config in `.emmyrc.json`. `mise run check` must pass
+  before commit.
+- **Commits:** [Conventional Commits](https://www.conventionalcommits.org).
+
+## Dev loop
+
+1. Edit Lua under `Contents/mods/__MOD_NAME__/42/media/lua/`.
+2. `mise run check`.
+3. `mise run deploy client` (or `all`).
+4. Launch PZ → enable the mod → verify in-game. Then repeat on a **local dedicated server**
+   for MP. See [docs/TESTING.md](docs/TESTING.md).

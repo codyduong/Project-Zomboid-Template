@@ -1,0 +1,8 @@
+Umbrella/**/*
+dist/**/*
+# PZ server config format (4-space), not mod code
+testhost/**/*
+# ephemeral testhost state (contains a deployed mod copy)
+.testhost/**/*
+# downloaded dev tools (the pzserver install ships the whole vanilla lua tree)
+.tools/**/*
