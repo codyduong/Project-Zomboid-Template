@@ -33,7 +33,7 @@ Two independent version concepts — don't conflate them:
    mise run publish prod "Short changenote"   # only once test looks right
    ```
 
-## Steam Workshop publish (`tooling/scripts/publish-workshop.ps1`)
+## Steam Workshop publish (`tooling/scripts/publish-workshop.{ps1,sh}`)
 
 - **One-time:** `cp mise.local.toml.example mise.local.toml` and set `STEAM_USERNAME` +
   `STEAM_PASSWORD`. `mise run publish` logs in non-interactively.
@@ -41,7 +41,9 @@ Two independent version concepts — don't conflate them:
   (public, not secret — safe to commit).
 - **Target is required and explicit.** `mise run publish <test|prod> "note"` — there is **no
   default and no env fallback**, so you can't publish to prod by accident.
-- Requires **steamcmd** on PATH: `winget install Valve.SteamCMD`.
+- Requires **steamcmd** on PATH (`winget install Valve.SteamCMD` on Windows), plus **`jq`**
+  on Linux/macOS (used to read `workshop/item-ids.json`; Windows reads it via PowerShell's
+  own JSON support, no extra tool needed).
 - It rebuilds `dist/__MOD_NAME__`, fills `workshop/workshop.vdf` into
   `.publish/workshop.vdf`, then runs
   `steamcmd +login <user> +workshop_build_item <vdf> +quit`.
@@ -51,8 +53,10 @@ Two independent version concepts — don't conflate them:
   `{{CONTENTFOLDER}}`, `{{PREVIEWFILE}}`, `{{CHANGENOTE}}`. Edit `workshop/workshop.vdf` and
   re-publish to change the page — don't edit it in-browser (a publish overwrites it).
 - **Preview it first.** `pwsh -File tooling/scripts/publish-workshop.ps1 test "note" -DryRun`
-  builds + prints the VDF **without uploading** (works without steamcmd installed).
-- Set the Steam user via `-SteamUser you` or `$env:STEAM_USERNAME`; otherwise it prompts.
+  (or `bash tooling/scripts/publish-workshop.sh test "note" --dry-run` on Linux/macOS) builds
+  + prints the VDF **without uploading** (works without steamcmd installed).
+- Set the Steam user via `-SteamUser`/`--steam-user` or `$env:STEAM_USERNAME`/`$STEAM_USERNAME`;
+  otherwise it prompts.
 - **Caveat:** only the single **preview** image is manageable via steamcmd. Extra gallery
   screenshots aren't settable this way — put images that should live in the description as
   `[img]<url>[/img]` BBCode instead.

@@ -1,24 +1,16 @@
-#!/bin/bash
-# CI-ONLY twin of scripts/package.ps1, kept for the Linux release job
-# (.github/workflows/release.yml) — the only .sh script here; local dev uses the .ps1
-# scripts. Keep the version validation and the build/copy steps IDENTICAL to
-# package.ps1 — any drift ships a broken layout. See docs/RELEASING.md.
+#!/usr/bin/env bash
+# Bash twin of scripts/package.ps1 — used both by CI (.github/workflows/release.yml) and by
+# local dev on Linux/macOS (tooling/scripts/deploy-local.sh, publish-workshop.sh, and
+# `mise run package` on non-Windows all shell out to this). Keep the version validation and
+# the build/copy steps IDENTICAL to package.ps1 — any drift ships a broken layout. See
+# docs/RELEASING.md.
 
 set -e
+. "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
+cd "$(pz_repo_root)"
+MOD_NAME="$(pz_mod_name)"
 
-# Anchor to the consuming repo's root: this file lives at <repo>/tooling/scripts/package.sh
-# when checked out as a submodule, so that's two levels above scripts/.
-cd "$(dirname "$0")/../.."
-
-# Every mod repo scaffolded from this template has exactly one folder under Contents/mods/
-# -- derive the mod name from it instead of hardcoding it.
-MOD_NAME=$(ls "./Contents/mods" | head -n1)
 INPUT_TAG="$1"
-
-if [ -z "$MOD_NAME" ]; then
-  echo "Error: no folder found under Contents/mods/ (expected exactly one, the mod itself)."
-  exit 1
-fi
 
 # 1. Validation Step
 if [ -z "$INPUT_TAG" ]; then

@@ -115,5 +115,6 @@ Write-Host "  2. Fill in workshop/item-ids.json and workshop/workshop.vdf once y
 Write-Host "  3. mise install && mise run check" -ForegroundColor Green
 Write-Host "  See (this template's) docs/USING-THIS-TEMPLATE.md on GitHub for the rest." -ForegroundColor Green
 
-# --- 5. Self-delete -----------------------------------------------------------------------
+# --- 5. Self-delete (and the sibling bootstrap.sh, since only one OS's script ran) --------
 Remove-Item $PSCommandPath -Force
+Remove-Item "bootstrap.sh" -Force -ErrorAction SilentlyContinue

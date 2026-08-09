@@ -53,6 +53,12 @@ mise tasks
 | `mise run publish <test\|prod> "note"` | Upload to Steam Workshop via steamcmd |
 | `mise run sync-template` | Pull the latest `tooling/` (Project-Zomboid-Template) commit |
 
+**Cross-platform**: every task works on Windows, Linux, and macOS — `tooling/scripts/` ships
+a `.sh` and a `.ps1` twin for each, and `mise.toml` picks the right one per OS (`run` = sh,
+`run_windows` = pwsh). `publish` needs `jq` in addition to `steamcmd` on non-Windows;
+`decompile`/`testhost` auto-detect the platform's default Steam install path (override with
+`$PZ_HOME` / pass a path, same as Windows).
+
 **Keeping in sync with the template**: `mise run sync-template` updates `tooling/` to the
 template's current tip and stages the submodule bump — review the diff, then commit. To pin
 and skip an update, just don't run it. To fully diverge (vendor `tooling/` permanently and
