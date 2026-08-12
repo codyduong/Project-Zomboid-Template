@@ -1,0 +1,9 @@
+{
+  "name": "pz-mod-tooling",
+  "private": true,
+  "type": "module",
+  "description": "Node-based tooling for scripts/ that steamcmd can't do (currently: Workshop tags, since steamcmd's workshop_build_item never calls ISteamUGC::SetItemTags -- see scripts/set-workshop-tags.mjs).",
+  "dependencies": {
+    "steamworks.js": "^0.4.0"
+  }
+}

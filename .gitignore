@@ -3,3 +3,7 @@
 # into new mod repos — don't conflate the two.
 .DS_Store
 Thumbs.db
+
+# npm deps for scripts/set-workshop-tags.mjs (package.json/package-lock.json are committed;
+# node_modules is installed on demand by the set-workshop-tags mise task)
+node_modules/
